@@ -11,8 +11,10 @@ name: update-sources
 
 on:
   schedule:
-    # 每天 UTC 03:23（北京时间为 11:23）运行；避开整点高峰
+    # 每天三更：UTC 03:23 / 09:23 / 15:23（北京时间 11:23 / 17:23 / 23:23），避开整点高峰
     - cron: "23 3 * * *"
+    - cron: "23 9 * * *"
+    - cron: "23 15 * * *"
   workflow_dispatch: # 允许在 GitHub 页面上手动触发
 
 permissions:

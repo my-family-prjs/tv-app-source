@@ -1,6 +1,9 @@
 {
   "_说明": "源分发项目配置文件。所有脚本共用本文件。字段含义见 README.md。",
-
+  "proxy": "",
+  "_proxy说明": "HTTP 代理地址（如 http://127.0.0.1:7890），走的是代理隧道；一般留空即可。",
+  "github_proxy_prefix": "https://gh-proxy.com/",
+  "_github_proxy说明": "GitHub 镜像/代理前缀（如 https://gh-proxy.com/ 或自建 githubproxy 的 Workers 地址，须以 / 结尾）。国内本地跑脚本时填上，脚本会把所有 GitHub 域名的上游地址改写成代理地址；留空则直连。GitHub Actions 里跑无需设置。",
   "cms": {
     "upstreams": [
       {
@@ -11,8 +14,111 @@
         "说明": "该仓库每天自动检测 CMS API 可用性，产出格式为 {cache_time, api_site: {键: {name, api, detail}}}，api 字段即 maccms JSON 采集接口地址"
       }
     ],
-    "extra_apis": [],
+    "extra_apis": [
+      {
+        "key": "bfzy",
+        "name": "暴风资源",
+        "api": "https://bfzyapi.com/api.php/provide/vod",
+        "note": "上新快，最新电影电视剧为主"
+      },
+      {
+        "key": "ffzy",
+        "name": "非凡资源",
+        "api": "https://cj.ffzyapi.com/api.php/provide/vod",
+        "note": "上新快，热播剧同步及时"
+      },
+      {
+        "key": "wolong",
+        "name": "卧龙资源",
+        "api": "https://collect.wolongzy.cc/api.php/provide/vod",
+        "note": "老牌大站，电影电视剧综艺都全"
+      },
+      {
+        "key": "tianya",
+        "name": "天涯资源",
+        "api": "https://tyyszy.com/api.php/provide/vod",
+        "note": "更新快，蓝光画质多"
+      },
+      {
+        "key": "hongniu",
+        "name": "红牛资源",
+        "api": "https://www.hongniuzy3.com/api.php/provide/vod",
+        "note": "老牌源，库存量大"
+      },
+      {
+        "key": "subo",
+        "name": "速播资源",
+        "api": "https://www.subozy.com/api.php/provide/vod",
+        "note": "候选，测活通过则保留"
+      },
+      {
+        "key": "haolaiwu",
+        "name": "好莱坞资源",
+        "api": "https://hhlzy.net/api.php/provide/vod",
+        "note": "候选，测活通过则保留"
+      },
+      {
+        "key": "jinying",
+        "name": "金鹰资源",
+        "api": "https://jinyingzy1.com/api.php/provide/vod",
+        "note": "候选，测活通过则保留"
+      }
+    ],
     "test_path": "?ac=videolist&pg=1",
+    "adult_filter": {
+      "enabled": true,
+      "_说明": "成人内容过滤。name_keywords 用于过滤接口名称/域名（在测活前剔除）；content_keywords 用于检测接口返回的分类名和影片名（防止名字伪装干净的成人源混进来）。新增上游后如果发现漏网成人源，把它的特征词补进来即可。",
+      "name_keywords": [
+        "🔞",
+        "成人",
+        "av",
+        "番号",
+        "麻豆",
+        "杏吧",
+        "黄色",
+        "无码",
+        "有码",
+        "情色",
+        "伦理",
+        "福利姬",
+        "hsck",
+        "kxgav",
+        "souav",
+        "91md",
+        "jkun",
+        "danaizi",
+        "msnii",
+        "xingba",
+        "xiaojizy",
+        "slapibf",
+        "155api",
+        "fhapi",
+        "dadiapi",
+        "hsckzy"
+      ],
+      "content_keywords": [
+        "无码",
+        "有码",
+        "巨乳",
+        "人妻",
+        "痴女",
+        "翘臀",
+        "裸体",
+        "脱衣",
+        "制服诱惑",
+        "国产传媒",
+        "麻豆传媒",
+        "成人",
+        "情色",
+        "三级",
+        "伦理性爱",
+        "写真",
+        "福利姬",
+        "妓",
+        "援交",
+        "国产精品自拍"
+      ]
+    },
     "timeout_seconds": 10,
     "connect_timeout_seconds": 8,
     "retries": 2,
@@ -23,17 +129,121 @@
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
     "output": "dist/cms_sources.json"
   },
-
   "iptv": {
     "sources": [
       {
+        "name": "Guovin/iptv-database",
+        "url": "https://raw.githubusercontent.com/Guovin/iptv-database/master/result.txt",
+        "format": "txt",
+        "enabled": false
+      },
+      {
         "name": "iptv-org 中国频道",
-        "url": "https://iptv-org.github.io/iptv/countries/cn.m3u",
+        "url": "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
+        "format": "m3u",
+        "enabled": true,
+        "whitelist": [
+          "CCTV",
+          "CGTN",
+          "卫视",
+          "Satellite TV"
+        ],
+        "说明": "英文命名的国际源，按白名单只留央视/卫视，地方英文台剔除"
+      },
+      {
+        "name": "suxuang/myIPTV",
+        "url": "https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv6.m3u",
+        "format": "m3u",
+        "enabled": true
+      },
+      {
+        "name": "kimwang1978/collect-tv-txt",
+        "url": "https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/merged_output.txt",
+        "format": "txt",
+        "enabled": true
+      },
+      {
+        "name": "xzw832/cmys 央视频道",
+        "url": "https://raw.githubusercontent.com/xzw832/cmys/main/S_CCTV.txt",
+        "format": "txt",
+        "enabled": false
+      },
+      {
+        "name": "xzw832/cmys 卫视频道",
+        "url": "https://raw.githubusercontent.com/xzw832/cmys/main/S_weishi.txt",
+        "format": "txt",
+        "enabled": false
+      },
+      {
+        "name": "yuanzl77/IPTV",
+        "url": "https://raw.githubusercontent.com/yuanzl77/IPTV/master/live.txt",
+        "format": "txt",
+        "enabled": false
+      },
+      {
+        "name": "fanmingming/live",
+        "url": "https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u",
+        "format": "m3u",
+        "enabled": true,
+        "说明": "IPv6 源，带节目单和台标；播放需要本地网络支持 IPv6"
+      },
+      {
+        "name": "vbskycn/iptv IPv6",
+        "url": "https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv6.txt",
+        "format": "txt",
+        "enabled": true
+      },
+      {
+        "name": "vbskycn/iptv IPv4",
+        "url": "https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt",
+        "format": "txt",
+        "enabled": true
+      },
+      {
+        "name": "YueChan/Live APTV",
+        "url": "https://raw.githubusercontent.com/YueChan/Live/main/APTV.m3u",
+        "format": "m3u",
+        "enabled": false
+      },
+      {
+        "name": "YanG-1989/m3u Gather",
+        "url": "https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u",
+        "format": "m3u",
         "enabled": true
       }
     ],
     "include_keywords": [],
-    "exclude_keywords": ["测试", "Test", "geo-blocked", "Geo-blocked"],
+    "exclude_keywords": [
+      "测试",
+      "Test",
+      "geo-blocked",
+      "Geo-blocked",
+      "Not 24/7",
+      "成人",
+      "AV",
+      "情色",
+      " Erotic",
+      "Playboy",
+      "Hustler",
+      "Brazzers",
+      "Dorcel",
+      "Venus",
+      "18+",
+      "XXX",
+      "Sex",
+      "夜欢",
+      "寻花"
+    ],
+    "category_whitelist": [
+      "央视",
+      "卫视",
+      "地方"
+    ],
+    "category_order": [
+      "央视",
+      "卫视",
+      "地方"
+    ],
     "timeout_seconds": 10,
     "retries": 2,
     "retry_delay_seconds": 1,
@@ -48,7 +258,6 @@
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
     "output": "dist/iptv.m3u"
   },
-
   "tvbox": {
     "cms_sources_input": "dist/cms_sources.json",
     "site_timeout_seconds": 15,

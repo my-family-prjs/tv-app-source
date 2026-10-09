@@ -25,7 +25,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
-from common import load_config, http_get_text, project_path, write_text, log  # noqa: E402
+from common import load_config, http_get_text, project_path, write_text, log, with_github_proxy  # noqa: E402
 
 M3U_HEADER = "#EXTM3U"
 
@@ -94,6 +94,35 @@ def parse_extinf(line):
     return name, attrs
 
 
+def parse_txt_genre(text):
+    """解析 txt 分类格式（TVBox/iptv-api 常见产出格式）。
+
+    格式：
+        央视频道,#genre#
+        CCTV-1,http://...
+        卫视频道,#genre#
+    返回频道字典列表，字段含 name、url、category（所属分类）。
+    """
+    channels = []
+    category = ""
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") and not line.endswith("#genre#"):
+            continue
+        if line.endswith("#genre#"):
+            category = line.split(",", 1)[0].strip().lstrip("#").replace("#genre#", "").strip()
+            continue
+        comma = line.find(",")
+        if comma <= 0:
+            continue
+        name = line[:comma].strip()
+        url = line[comma + 1:].strip()
+        if not name or not url.lower().startswith(("http://", "https://", "rtmp://", "udp://", "rtspt://")):
+            continue
+        channels.append({"name": name, "url": url, "attrs": {}, "category": category})
+    return channels
+
+
 def probe_url(url, probe_cfg, user_agent):
     """对单个播放地址做轻量连通性测试。
 
@@ -135,6 +164,9 @@ def main():
 
     cfg = load_config(args.config)
     iptv_cfg = cfg.get("iptv", {})
+    # proxy / github_proxy_prefix 配置在顶层，下发给各网络请求环节使用
+    for key in ("proxy", "github_proxy_prefix"):
+        iptv_cfg.setdefault(key, cfg.get(key, ""))
 
     log("== fetch_iptv 开始 ==")
     all_channels = []
@@ -143,20 +175,39 @@ def main():
             log("直播源已禁用，跳过：%s" % source.get("name"))
             continue
         url = source["url"]
-        log("下载直播源：%s（%s）" % (source.get("name"), url))
+        fetch_url = with_github_proxy(url, iptv_cfg.get("github_proxy_prefix"))
+        log("下载直播源：%s（%s）" % (source.get("name"), fetch_url))
         status, text, error = http_get_text(
-            url,
+            fetch_url,
             timeout=iptv_cfg.get("timeout_seconds", 10),
             retries=iptv_cfg.get("retries", 2),
             retry_delay=iptv_cfg.get("retry_delay_seconds", 1),
             user_agent=iptv_cfg.get("user_agent"),
+            proxy=iptv_cfg.get("proxy") or None,
         )
         if error is not None:
             log("  下载失败：%s（继续处理其他源）" % error)
             continue
         channels = parse_m3u(text)
-        log("  解析到 %d 个频道" % len(channels))
+        fmt = (source.get("format") or "auto").lower()
+        if fmt == "txt":
+            channels = parse_txt_genre(text)
+        elif fmt == "m3u":
+            channels = parse_m3u(text)
+        else:  # auto：按内容特征判断格式
+            channels = parse_txt_genre(text) if "#genre#" in text else parse_m3u(text)
+        log("  解析到 %d 个频道（%s 格式）" % (len(channels), fmt if fmt != "auto" else "自动识别"))
+
+        # 单源白名单：m3u 类国际源里只保留名字命中关键词的频道（如 iptv-org 只留 CCTV/卫视）
+        source_whitelist = [k.lower() for k in source.get("whitelist", []) if k]
+        if source_whitelist:
+            before = len(channels)
+            channels = [c for c in channels
+                        if any(k in c["name"].lower() for k in source_whitelist)]
+            log("  单源白名单过滤：%d -> %d 个" % (before, len(channels)))
+
         for channel in channels:
+            channel.setdefault("category", channel["attrs"].get("group-title", ""))
             channel["source"] = source.get("name", url)
         all_channels.extend(channels)
 
@@ -180,6 +231,31 @@ def main():
         filtered.append(channel)
     log("关键词过滤：保留 %d 个（不含关键词剔除 %d，含排除词剔除 %d）" % (
         len(filtered), dropped_include, dropped_exclude))
+
+    # 分类白名单：只保留分类名命中正则的频道（txt 分类源里可剔除港澳台、成人等非国内常规分类）
+    import re
+    category_patterns = [re.compile(p, re.IGNORECASE)
+                         for p in iptv_cfg.get("category_whitelist", []) if p]
+    if category_patterns:
+        before = len(filtered)
+        kept = []
+        for channel in filtered:
+            category = channel.get("category", "")
+            # 无分类信息的频道（如普通 m3u 源）不受分类白名单约束
+            if not category or any(p.search(category) for p in category_patterns):
+                kept.append(channel)
+        filtered = kept
+        log("分类白名单过滤：%d -> %d 个" % (before, len(filtered)))
+
+    # 按分类优先级排序（category_order 里越靠前的分类排越前），组内保持原有顺序
+    category_order = iptv_cfg.get("category_order", [])
+    def category_rank(channel):
+        category = channel.get("category", "")
+        for index, prefix in enumerate(category_order):
+            if prefix in category:
+                return index
+        return len(category_order)
+    filtered.sort(key=category_rank)
 
     # 按播放地址去重，保留先出现的（即优先级靠前的源）
     seen_urls = set()
@@ -224,15 +300,25 @@ def main():
         log("连通性抽测未启用（probe.enabled=false，可用 --probe 打开）")
 
     # 输出 m3u
+    github_prefix = iptv_cfg.get("github_proxy_prefix") or ""
     lines = [M3U_HEADER]
     for channel in unique_channels:
         attrs = []
-        for attr_key in ("tvg-id", "tvg-logo", "group-title"):
+        for attr_key in ("tvg-id", "tvg-logo"):
             value = channel["attrs"].get(attr_key)
             if value:
+                # 台标等 GitHub 图片地址统一改写到配置的代理前缀，避免第三方代理失效
+                if attr_key == "tvg-logo" and github_prefix:
+                    raw_index = value.find("raw.githubusercontent.com")
+                    if raw_index >= 0:
+                        # 兼容已被其他代理包装过的形式（https://某代理/https://raw.githubusercontent.com/...）
+                        value = with_github_proxy("https://" + value[raw_index:], github_prefix)
                 attrs.append('%s="%s"' % (attr_key, value))
-        if not channel["attrs"].get("group-title"):
-            attrs.append('group-title="%s"' % channel.get("source", "其他"))
+        # 分类优先级：txt 分类源的 category > m3u 自带 group-title > 来源名
+        group_title = (channel.get("category")
+                       or channel["attrs"].get("group-title")
+                       or channel.get("source", "其他"))
+        attrs.append('group-title="%s"' % group_title)
         lines.append("#EXTINF:-1 %s,%s" % (" ".join(attrs), channel["name"]))
         lines.append(channel["url"])
     text_out = "\n".join(lines) + "\n"

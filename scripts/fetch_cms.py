@@ -25,7 +25,74 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # 保证 scripts/ 目录在 sys.path 中，便于直接以 python3 scripts/fetch_cms.py 运行
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
-from common import load_config, http_get_text, project_path, write_json, log  # noqa: E402
+from common import load_config, http_get_text, project_path, write_json, log, with_github_proxy  # noqa: E402
+
+
+def is_adult_entry(entry, cms_cfg):
+    """按名称/域名关键词判断一个接口是否疑似成人源（测活前剔除）。
+
+    命中返回 True。关键词在 config.json 的 cms.adult_filter.name_keywords 里维护。
+    """
+    adult_cfg = cms_cfg.get("adult_filter", {}) or {}
+    if not adult_cfg.get("enabled", True):
+        return False
+    keywords = [k.lower() for k in adult_cfg.get("name_keywords", []) if k]
+    if not keywords:
+        return False
+    haystack = " ".join([
+        str(entry.get("name", "")),
+        str(entry.get("key", "")),
+        str(entry.get("api", "")),
+        str(entry.get("detail", "")),
+    ]).lower()
+    return any(k in haystack for k in keywords)
+
+
+def hit_adult_content(data, cms_cfg):
+    """检测接口返回内容（分类名 + 影片名）是否命中成人关键词。
+
+    data 是测活响应解析出的 JSON 字典。命中返回命中的关键词字符串，否则返回 None。
+    分类名（class）是最可靠的判断依据；影片名（vod_name）也参与检测，
+    影片名命中要求至少 2 个不同关键词命中或 1 个强特征词，避免正常影片误伤。
+    """
+    adult_cfg = cms_cfg.get("adult_filter", {}) or {}
+    if not adult_cfg.get("enabled", True):
+        return None
+    content_keywords = [k for k in adult_cfg.get("content_keywords", []) if k]
+
+    class_hits = []
+    class_list = data.get("class") or []
+    if isinstance(class_list, list):
+        for item in class_list:
+            class_name = ""
+            if isinstance(item, dict):
+                # 标准格式分类字段是 type_name；部分非标源（如大地资源）用 list_name
+                class_name = str(item.get("type_name") or item.get("list_name") or "")
+            elif isinstance(item, str):
+                class_name = item
+            for kw in content_keywords:
+                if kw in class_name:
+                    class_hits.append(kw)
+    if class_hits:
+        return "分类名命中：%s" % "、".join(sorted(set(class_hits)))
+
+    # 影片名检测：弱特征词要求两个及以上同时出现才判定，强特征词（成人/无码/有码等）单个即判
+    strong = {"成人", "无码", "有码", "情色", "三级", "妓", "援交", "麻豆传媒", "国产传媒"}
+    vod_list = data.get("list") or []
+    vod_hits = set()
+    if isinstance(vod_list, list):
+        for item in vod_list:
+            vod_name = ""
+            if isinstance(item, dict):
+                vod_name = str(item.get("vod_name") or item.get("name") or "")
+            for kw in content_keywords:
+                if kw in vod_name:
+                    vod_hits.add(kw)
+    if len(vod_hits) >= 2:
+        return "影片名命中 %d 个关键词：%s" % (len(vod_hits), "、".join(sorted(vod_hits)))
+    if vod_hits & strong:
+        return "影片名命中强特征词：%s" % "、".join(sorted(vod_hits & strong))
+    return None
 
 
 def parse_upstream_lunatv(data):
@@ -61,12 +128,14 @@ def load_upstream_apis(cms_cfg):
             log("上游已禁用，跳过：%s" % source.get("name"))
             continue
         url = source["url"]
-        log("拉取上游：%s（%s）" % (source.get("name"), url))
+        fetch_url = with_github_proxy(url, cms_cfg.get("github_proxy_prefix"))
+        log("拉取上游：%s（%s）" % (source.get("name"), fetch_url))
         status, text, error = http_get_text(
-            url,
+            fetch_url,
             timeout=cms_cfg.get("timeout_seconds", 10),
             retries=cms_cfg.get("retries", 2),
             retry_delay=cms_cfg.get("retry_delay_seconds", 1),
+            proxy=cms_cfg.get("proxy") or None,
         )
         if error is not None:
             log("  上游拉取失败：%s（继续处理其他上游）" % error)
@@ -98,7 +167,15 @@ def load_upstream_apis(cms_cfg):
             "upstream": "extra",
         })
 
-    return list(collected.values())
+    # 成人源过滤（测活前先按名称/域名剔除一遍；内容级检测在测活时再做第二道）
+    all_entries = list(collected.values())
+    blocked = [e for e in all_entries if is_adult_entry(e, cms_cfg)]
+    for entry in blocked:
+        log("  成人源剔除（名称/域名命中）：%s —— %s" % (entry.get("name"), entry["api"]))
+    kept = [e for e in all_entries if not is_adult_entry(e, cms_cfg)]
+    log("成人源名称过滤：共 %d 个接口，剔除 %d 个，待测 %d 个" % (
+        len(all_entries), len(blocked), len(kept)))
+    return kept
 
 
 def build_test_url(api, test_path):
@@ -156,6 +233,11 @@ def check_one_api(entry, cms_cfg):
         result["reason"] = "响应 JSON 顶层不是对象"
         return result
 
+    adult_hit = hit_adult_content(data, cms_cfg)
+    if adult_hit:
+        result["reason"] = "疑似成人内容（%s）" % adult_hit
+        return result
+
     class_list = data.get("class") or []
     vod_list = data.get("list") or []
     result["class_count"] = len(class_list) if isinstance(class_list, list) else 0
@@ -183,6 +265,9 @@ def main():
 
     cfg = load_config(args.config)
     cms_cfg = cfg.get("cms", {})
+    # proxy / github_proxy_prefix 配置在顶层，下发给各网络请求环节使用
+    for key in ("proxy", "github_proxy_prefix"):
+        cms_cfg.setdefault(key, cfg.get(key, ""))
 
     log("== fetch_cms 开始 ==")
     apis = load_upstream_apis(cms_cfg)

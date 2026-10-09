@@ -45,27 +45,35 @@
         App（FongMi/TV）填入配置地址即可加载点播与直播
 ```
 
-## jsDelivr 分发地址格式
+## 分发地址（多通道，App 端任选或备用）
 
-仓库公开且默认分支为 `main` 时，任何文件都可以通过 jsDelivr 访问：
+仓库公开且默认分支为 `main` 时，同一份产物有多个可访问的通道，按国内可访问性排列：
+
+**通道一：GitHub 镜像代理（国内直连最稳）**
+
+在 raw 地址前加镜像前缀，前缀可以是现成镜像站（如 `https://gh-proxy.com/`），也可以是自建的 githubproxy（Cloudflare Workers 部署，最可控）：
 
 ```
-https://cdn.jsdelivr.net/gh/<用户名>/<仓库名>@main/<路径>
+https://gh-proxy.com/https://raw.githubusercontent.com/<用户名>/<仓库名>/main/dist/tvbox.json
+https://你的自建代理域名/https://raw.githubusercontent.com/<用户名>/<仓库名>/main/dist/tvbox.json
 ```
 
-本项目部署后的两个常用地址（假设你的仓库为 `yourname/source-dist`，且 source-dist 内容就是仓库根）：
+**通道二：jsDelivr CDN（海外稳定，国内时好时坏）**
 
-- 点播+直播主配置：
-  `https://cdn.jsdelivr.net/gh/yourname/source-dist@main/dist/tvbox.json`
-- 直播 m3u（单独使用时）：
-  `https://cdn.jsdelivr.net/gh/yourname/source-dist@main/dist/iptv.m3u`
-
-说明：
+```
+https://cdn.jsdelivr.net/gh/<用户名>/<仓库名>@main/dist/tvbox.json
+```
 
 - `@main` 可以换成具体的 commit 哈希或 tag；用分支名时 jsDelivr 有约 12 小时缓存，仓库更新后不会立刻生效，想立即刷新可访问一次 `https://purge.jsdelivr.net/gh/<用户名>/<仓库名>@main/dist/tvbox.json`。
 - `dist/` 目录必须随仓库提交（哪怕内容为空时只有 `.gitkeep` 占位），否则 CDN 上没有这些路径。
 - 把仓库设为 Public 才能走 jsDelivr 的 gh 分发；Private 仓库无法通过 jsDelivr 访问。
 - 公开仓库意味着任何人都能读到这份源列表，这通常正是"分发"的目的，但也请结合下面的法律风险提示自行判断。
+
+**通道三（规划中）：Cloudflare Worker + D1**
+
+Worker 提供接口，D1 存源列表与更新时间记录，绑定自定义域名后国内可访问，作为长期方案，见 tv-plan 项目后续开发。
+
+App（FongMi）支持在配置里填主地址，并在设置中手动切换备用地址，建议主用通道一、备用通道二。
 
 ## 部署步骤
 
