@@ -1,0 +1,50 @@
+# 每天定时采集、测活视频源并提交结果。
+#
+# 重要：GitHub 只识别"仓库根目录"下的 .github/workflows/。
+# 如果本文件随 source-dist/ 子目录一起拷贝，部署时必须把它移到
+# 仓库根的 .github/workflows/update-sources.yml（详见 README.md 部署步骤）。
+#
+# 本工作流内部对 dist/ 的 commit 与 push 是 CI 自动化提交，
+# 使用 contents: write 权限；这属于 Actions 的正常运作方式。
+
+name: update-sources
+
+on:
+  schedule:
+    # 每天 UTC 03:23（北京时间为 11:23）运行；避开整点高峰
+    - cron: "23 3 * * *"
+  workflow_dispatch: # 允许在 GitHub 页面上手动触发
+
+permissions:
+  contents: write # 允许工作流把 dist/ 结果 commit 并 push 回仓库
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 采集并测活 CMS 点播接口
+        run: python3 scripts/fetch_cms.py
+
+      - name: 采集直播源 m3u
+        run: python3 scripts/fetch_iptv.py
+
+      - name: 组装 tvbox.json
+        run: python3 scripts/build_config.py
+
+      - name: 提交并推送 dist/ 结果
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: "dist"
+          message: "chore: 每日更新视频源（自动提交）"
+          default_author: github_actions
+          push: true

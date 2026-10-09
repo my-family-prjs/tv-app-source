@@ -1,0 +1,60 @@
+{
+  "_说明": "源分发项目配置文件。所有脚本共用本文件。字段含义见 README.md。",
+
+  "cms": {
+    "upstreams": [
+      {
+        "name": "LunaTV-config",
+        "url": "https://raw.githubusercontent.com/hafrey1/LunaTV-config/main/LunaTV-config.json",
+        "format": "lunatv",
+        "enabled": true,
+        "说明": "该仓库每天自动检测 CMS API 可用性，产出格式为 {cache_time, api_site: {键: {name, api, detail}}}，api 字段即 maccms JSON 采集接口地址"
+      }
+    ],
+    "extra_apis": [],
+    "test_path": "?ac=videolist&pg=1",
+    "timeout_seconds": 10,
+    "connect_timeout_seconds": 8,
+    "retries": 2,
+    "retry_delay_seconds": 1,
+    "concurrency": 24,
+    "max_keep": 40,
+    "min_vod_count": 1,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    "output": "dist/cms_sources.json"
+  },
+
+  "iptv": {
+    "sources": [
+      {
+        "name": "iptv-org 中国频道",
+        "url": "https://iptv-org.github.io/iptv/countries/cn.m3u",
+        "enabled": true
+      }
+    ],
+    "include_keywords": [],
+    "exclude_keywords": ["测试", "Test", "geo-blocked", "Geo-blocked"],
+    "timeout_seconds": 10,
+    "retries": 2,
+    "retry_delay_seconds": 1,
+    "probe": {
+      "enabled": false,
+      "timeout_seconds": 6,
+      "read_limit_bytes": 65536,
+      "concurrency": 16,
+      "sample_limit": 0,
+      "说明": "enabled 为 true 时对频道地址做轻量连通性抽测（小流量 GET，读满 read_limit_bytes 即断开），失败的频道会被剔除；sample_limit 为 0 表示测全部去重后的地址"
+    },
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    "output": "dist/iptv.m3u"
+  },
+
+  "tvbox": {
+    "cms_sources_input": "dist/cms_sources.json",
+    "site_timeout_seconds": 15,
+    "live_name": "直播源",
+    "live_url": "./iptv.m3u",
+    "live_epg": "",
+    "output": "dist/tvbox.json"
+  }
+}
