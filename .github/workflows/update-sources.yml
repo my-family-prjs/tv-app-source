@@ -49,4 +49,5 @@ jobs:
           add: "dist"
           message: "chore: 每日更新视频源（自动提交）"
           default_author: github_actions
+          pull: "--rebase --autostash" # 推送前先拉取远端并变基，避免与手动推送撞车
           push: true
