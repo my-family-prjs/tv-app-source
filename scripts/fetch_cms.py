@@ -168,7 +168,16 @@ def load_upstream_apis(cms_cfg):
         })
 
     # 成人源过滤（测活前先按名称/域名剔除一遍；内容级检测在测活时再做第二道）
+    # 垃圾/失效包装条目过滤：api 命中 exclude_api_keywords 的直接剔除
+    exclude_keywords = [k.lower() for k in cms_cfg.get("exclude_api_keywords", []) if k]
     all_entries = list(collected.values())
+    if exclude_keywords:
+        junk_keys = {e["api"] for e in all_entries
+                     if any(k in e["api"].lower() for k in exclude_keywords)}
+        for entry in all_entries:
+            if entry["api"] in junk_keys:
+                log("  垃圾条目剔除（api 命中排除词）：%s —— %s" % (entry.get("name"), entry["api"]))
+        all_entries = [e for e in all_entries if e["api"] not in junk_keys]
     blocked = [e for e in all_entries if is_adult_entry(e, cms_cfg)]
     for entry in blocked:
         log("  成人源剔除（名称/域名命中）：%s —— %s" % (entry.get("name"), entry["api"]))
@@ -261,6 +270,8 @@ def main():
     parser.add_argument("--output", default=None, help="输出文件路径（默认取配置里的 cms.output）")
     parser.add_argument("--limit", type=int, default=0,
                         help="最多测活多少个接口（0 表示全部），便于本地快速调试")
+    parser.add_argument("--verbose", action="store_true",
+                        help="逐条打印 FAIL 详情（默认只打印 OK 与最终汇总，避免日志刷屏）")
     args = parser.parse_args()
 
     cfg = load_config(args.config)
@@ -298,12 +309,15 @@ def main():
                 }
             results.append(result)
             done_count += 1
-            mark = "OK " if result["ok"] else "FAIL"
-            log("[%d/%d] %s %s —— %s，%d ms%s" % (
-                done_count, len(apis), mark, result["api"],
-                result["reason"], result["latency_ms"],
-                ("，分类 %d / 影片 %d" % (result["class_count"], result["vod_count"]))
-                if result["ok"] else ""))
+            if result["ok"]:
+                log("[%d/%d] OK  %s —— %s，%d ms，分类 %d / 影片 %d" % (
+                    done_count, len(apis), result["api"],
+                    result["reason"], result["latency_ms"],
+                    result["class_count"], result["vod_count"]))
+            elif args.verbose:
+                log("[%d/%d] FAIL %s —— %s，%d ms" % (
+                    done_count, len(apis), result["api"],
+                    result["reason"], result["latency_ms"]))
 
     ok_results = sorted(
         (r for r in results if r["ok"]),
@@ -312,6 +326,15 @@ def main():
     max_keep = int(cms_cfg.get("max_keep", 40))
     kept = ok_results[:max_keep]
     dropped = ok_results[max_keep:]
+
+    # 失败原因汇总（代替逐条 FAIL 刷屏；明细仍完整写入输出文件的 failed 字段）
+    import collections
+    reason_counter = collections.Counter(
+        str(r["reason"]).split("：")[0][:40] for r in results if not r["ok"])
+    if reason_counter:
+        log("失败原因汇总（%d 个，明细见输出文件 failed 字段，--verbose 可逐条打印）：" % sum(reason_counter.values()))
+        for reason, count in reason_counter.most_common():
+            log("  %3d 个 —— %s" % (count, reason))
 
     output = args.output or cms_cfg.get("output", "dist/cms_sources.json")
     payload = {

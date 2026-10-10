@@ -127,7 +127,10 @@
     "max_keep": 40,
     "min_vod_count": 1,
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-    "output": "dist/cms_sources.json"
+    "output": "dist/cms_sources.json",
+    "exclude_api_keywords": [
+      "pz.v88.qzz.io"
+    ]
   },
   "iptv": {
     "sources": [
@@ -154,7 +157,7 @@
         "name": "suxuang/myIPTV",
         "url": "https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv6.m3u",
         "format": "m3u",
-        "enabled": true
+        "enabled": false
       },
       {
         "name": "kimwang1978/collect-tv-txt",
@@ -166,13 +169,13 @@
         "name": "xzw832/cmys 央视频道",
         "url": "https://raw.githubusercontent.com/xzw832/cmys/main/S_CCTV.txt",
         "format": "txt",
-        "enabled": false
+        "enabled": true
       },
       {
         "name": "xzw832/cmys 卫视频道",
         "url": "https://raw.githubusercontent.com/xzw832/cmys/main/S_weishi.txt",
         "format": "txt",
-        "enabled": false
+        "enabled": true
       },
       {
         "name": "yuanzl77/IPTV",
@@ -184,14 +187,14 @@
         "name": "fanmingming/live",
         "url": "https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u",
         "format": "m3u",
-        "enabled": true,
+        "enabled": false,
         "说明": "IPv6 源，带节目单和台标；播放需要本地网络支持 IPv6"
       },
       {
         "name": "vbskycn/iptv IPv6",
         "url": "https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv6.txt",
         "format": "txt",
-        "enabled": true
+        "enabled": false
       },
       {
         "name": "vbskycn/iptv IPv4",
@@ -203,7 +206,7 @@
         "name": "YueChan/Live APTV",
         "url": "https://raw.githubusercontent.com/YueChan/Live/main/APTV.m3u",
         "format": "m3u",
-        "enabled": false
+        "enabled": true
       },
       {
         "name": "YanG-1989/m3u Gather",

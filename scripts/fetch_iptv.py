@@ -158,6 +158,8 @@ def main():
     parser.add_argument("--output", default=None, help="输出文件路径（默认取配置里的 iptv.output）")
     parser.add_argument("--probe", action="store_true",
                         help="强制启用连通性抽测（覆盖配置里的 probe.enabled）")
+    parser.add_argument("--verbose", action="store_true",
+                        help="逐条打印 FAIL 详情（默认只打印最终汇总，避免日志刷屏）")
     parser.add_argument("--limit", type=int, default=0,
                         help="最多探测多少个去重后的地址（0 表示按配置，配置为 0 表示全部）")
     args = parser.parse_args()
@@ -268,15 +270,18 @@ def main():
     log("按地址去重：%d -> %d 个频道" % (len(filtered), len(unique_channels)))
 
     # 不可拨号地址过滤：私网/环回/链路本地等只在特定内网可用的地址，
-    # 以及 udp:// 组播（仅限局域网收看，CDN 分发场景无意义），直接剔除
+    # 以及 udp://、rtspt://（面向局域网/流媒体推流端，CDN 分发场景无法播放），
+    # 直接剔除。注意：CGNAT 段（100.64.0.0/10）在 Python 里不算 is_private，
+    # 不会被此处剔除，由连通性抽测兜底。
     import ipaddress
     from urllib.parse import urlparse
 
     def is_undialable(url):
-        scheme = urlparse(url).scheme.lower()
+        parsed = urlparse(url)
+        scheme = parsed.scheme.lower()
         if scheme in ("udp", "rtspt"):
-            return "udp 组播/RTSP 仅限局域网"
-        host = urlparse(url).hostname
+            return "udp/rtspt 仅限局域网"
+        host = parsed.hostname
         if not host:
             return "无主机名"
         try:
@@ -318,16 +323,26 @@ def main():
             futures = {pool.submit(probe_url, u, probe_cfg, iptv_cfg.get("user_agent")): u
                        for u in targets}
             done = 0
+            fail_details = []
             for future in as_completed(futures):
                 url, ok, detail = future.result()
                 probe_results[url] = (ok, detail)
                 done += 1
                 if not ok:
-                    log("  [%d/%d] FAIL %s —— %s" % (done, len(targets), url, detail))
+                    if args.verbose:
+                        log("  [%d/%d] FAIL %s —— %s" % (done, len(targets), url, detail))
+                    else:
+                        fail_details.append(detail)
         alive = [ch for ch in unique_channels
                  if ch["url"] not in probe_results or probe_results[ch["url"]][0]]
         dead_count = len(unique_channels) - len(alive)
         log("抽测完成：剔除 %d 个不通地址，剩余 %d 个频道" % (dead_count, len(alive)))
+        if fail_details:
+            import collections
+            detail_counter = collections.Counter(
+                str(d).split("：")[0][:40] for d in fail_details)
+            log("失败原因汇总（明细仅 --verbose 打印）：" +
+                "；".join("%d 个 %s" % (c, r) for r, c in detail_counter.most_common()))
         unique_channels = alive
     else:
         log("连通性抽测未启用（probe.enabled=false，可用 --probe 打开）")
