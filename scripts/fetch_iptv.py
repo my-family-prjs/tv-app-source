@@ -267,6 +267,39 @@ def main():
         unique_channels.append(channel)
     log("按地址去重：%d -> %d 个频道" % (len(filtered), len(unique_channels)))
 
+    # 不可拨号地址过滤：私网/环回/链路本地等只在特定内网可用的地址，
+    # 以及 udp:// 组播（仅限局域网收看，CDN 分发场景无意义），直接剔除
+    import ipaddress
+    from urllib.parse import urlparse
+
+    def is_undialable(url):
+        scheme = urlparse(url).scheme.lower()
+        if scheme in ("udp", "rtspt"):
+            return "udp 组播/RTSP 仅限局域网"
+        host = urlparse(url).hostname
+        if not host:
+            return "无主机名"
+        try:
+            ip = ipaddress.ip_address(host)
+        except ValueError:
+            return None  # 域名地址交给连通性抽测判断
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified:
+            return "私网/保留地址 %s" % ip
+        return None
+
+    dialable = []
+    dropped_undialable = 0
+    for channel in unique_channels:
+        reason = is_undialable(channel["url"])
+        if reason:
+            dropped_undialable += 1
+            continue
+        dialable.append(channel)
+    if dropped_undialable:
+        log("不可拨号地址过滤（私网/环回/udp 组播）：%d -> %d 个（剔除 %d）" % (
+            len(unique_channels), len(dialable), dropped_undialable))
+    unique_channels = dialable
+
     # 可选连通性抽测
     probe_cfg = dict(iptv_cfg.get("probe", {}) or {})
     if args.probe:

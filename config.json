@@ -248,7 +248,7 @@
     "retries": 2,
     "retry_delay_seconds": 1,
     "probe": {
-      "enabled": false,
+      "enabled": true,
       "timeout_seconds": 6,
       "read_limit_bytes": 65536,
       "concurrency": 16,
