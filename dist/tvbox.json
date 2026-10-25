@@ -1,64 +1,10 @@
 {
   "sites": [
     {
-      "key": "suoniapi_com",
-      "name": "索尼资源",
-      "type": 1,
-      "api": "https://suoniapi.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "api_wujinapi_com",
-      "name": "无尽影视",
-      "type": 1,
-      "api": "https://api.wujinapi.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
       "key": "cj_lziapi_com",
       "name": "量子影视",
       "type": 1,
       "api": "https://cj.lziapi.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "www_huyaapi_com",
-      "name": "虎牙资源",
-      "type": 1,
-      "api": "https://www.huyaapi.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "zuidazy_me",
-      "name": "最大点播",
-      "type": 1,
-      "api": "https://zuidazy.me/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "cj_yayazy_net",
-      "name": "鸭鸭资源",
-      "type": 1,
-      "api": "https://cj.yayazy.net/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "api_zuidapi_com",
-      "name": "最大资源",
-      "type": 1,
-      "api": "https://api.zuidapi.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
@@ -73,55 +19,10 @@
       "timeout": 15
     },
     {
-      "key": "www_hongniuzy3_com",
-      "name": "红牛资源",
+      "key": "api_wujinapi_com",
+      "name": "无尽影视",
       "type": 1,
-      "api": "https://www.hongniuzy3.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "hhzyapi_com",
-      "name": "豪华资源",
-      "type": 1,
-      "api": "https://hhzyapi.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "www_hongniuzy2_com",
-      "name": "红牛资源",
-      "type": 1,
-      "api": "https://www.hongniuzy2.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "xsd_sdzyapi_com",
-      "name": "闪电资源",
-      "type": 1,
-      "api": "https://xsd.sdzyapi.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "api_ukuapi88_com",
-      "name": "U酷影视",
-      "type": 1,
-      "api": "https://api.ukuapi88.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "api_guangsuapi_com",
-      "name": "光速资源",
-      "type": 1,
-      "api": "https://api.guangsuapi.com/api.php/provide/vod",
+      "api": "https://api.wujinapi.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
@@ -136,64 +37,46 @@
       "timeout": 15
     },
     {
-      "key": "ikunzyapi_com",
-      "name": "iKun资源",
+      "key": "suoniapi_com",
+      "name": "索尼资源",
       "type": 1,
-      "api": "https://ikunzyapi.com/api.php/provide/vod",
+      "api": "https://suoniapi.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
     },
     {
-      "key": "bfzyapi_com",
-      "name": "暴风资源",
+      "key": "www_hongniuzy3_com",
+      "name": "红牛资源",
       "type": 1,
-      "api": "https://bfzyapi.com/api.php/provide/vod",
+      "api": "https://www.hongniuzy3.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
     },
     {
-      "key": "caiji_dyttzyapi_com",
-      "name": "电影天堂",
+      "key": "xsd_sdzyapi_com",
+      "name": "闪电资源",
       "type": 1,
-      "api": "http://caiji.dyttzyapi.com/api.php/provide/vod",
+      "api": "https://xsd.sdzyapi.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
     },
     {
-      "key": "360zyzz_com",
-      "name": "360 资源",
+      "key": "cj_yayazy_net",
+      "name": "鸭鸭资源",
       "type": 1,
-      "api": "https://360zyzz.com/api.php/provide/vod",
+      "api": "https://cj.yayazy.net/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
     },
     {
-      "key": "m3u8_apiyhzy_com",
-      "name": "樱花资源",
+      "key": "hhzyapi_com",
+      "name": "豪华资源",
       "type": 1,
-      "api": "https://m3u8.apiyhzy.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "api_xinlangapi_com",
-      "name": "新浪资源",
-      "type": 1,
-      "api": "https://api.xinlangapi.com/xinlangapi.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "cj_lzcaiji_com",
-      "name": "量子资源",
-      "type": 1,
-      "api": "https://cj.lzcaiji.com/api.php/provide/vod",
+      "api": "https://hhzyapi.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
@@ -208,46 +91,28 @@
       "timeout": 15
     },
     {
-      "key": "jszyapi_com",
-      "name": "极速资源",
+      "key": "caiji_dyttzyapi_com",
+      "name": "电影天堂",
       "type": 1,
-      "api": "https://jszyapi.com/api.php/provide/vod",
+      "api": "http://caiji.dyttzyapi.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
     },
     {
-      "key": "www_subozy_com",
-      "name": "速播资源",
+      "key": "ikunzyapi_com",
+      "name": "iKun资源",
       "type": 1,
-      "api": "https://www.subozy.com/api.php/provide/vod",
+      "api": "https://ikunzyapi.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
     },
     {
-      "key": "subocaiji_com",
-      "name": "速播资源",
+      "key": "m3u8_apiyhzy_com",
+      "name": "樱花资源",
       "type": 1,
-      "api": "https://subocaiji.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "caiji_moduapi_cc",
-      "name": "魔都动漫",
-      "type": 1,
-      "api": "https://caiji.moduapi.cc/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "www_mdzyapi_com",
-      "name": "魔都资源",
-      "type": 1,
-      "api": "https://www.mdzyapi.com/api.php/provide/vod",
+      "api": "https://m3u8.apiyhzy.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
@@ -262,15 +127,6 @@
       "timeout": 15
     },
     {
-      "key": "cj_ffzyapi_com",
-      "name": "非凡资源",
-      "type": 1,
-      "api": "https://cj.ffzyapi.com/api.php/provide/vod",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
       "key": "api_yzzy_api_com",
       "name": "优质资源",
       "type": 1,
@@ -280,19 +136,136 @@
       "timeout": 15
     },
     {
-      "key": "api_maoyanapi_top",
-      "name": "猫眼资源",
+      "key": "zuidazy_me",
+      "name": "最大点播",
       "type": 1,
-      "api": "https://api.maoyanapi.top/api.php/provide/vod",
+      "api": "https://zuidazy.me/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
     },
     {
-      "key": "iqiyizyapi_com",
-      "name": "爱奇艺",
+      "key": "jszyapi_com",
+      "name": "极速资源",
       "type": 1,
-      "api": "https://iqiyizyapi.com/api.php/provide/vod",
+      "api": "https://jszyapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "www_hongniuzy2_com",
+      "name": "红牛资源",
+      "type": 1,
+      "api": "https://www.hongniuzy2.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "cj_lzcaiji_com",
+      "name": "量子资源",
+      "type": 1,
+      "api": "https://cj.lzcaiji.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "www_huyaapi_com",
+      "name": "虎牙资源",
+      "type": 1,
+      "api": "https://www.huyaapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "api_guangsuapi_com",
+      "name": "光速资源",
+      "type": 1,
+      "api": "https://api.guangsuapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "360zyzz_com",
+      "name": "360 资源",
+      "type": 1,
+      "api": "https://360zyzz.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "api_zuidapi_com",
+      "name": "最大资源",
+      "type": 1,
+      "api": "https://api.zuidapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "api_ukuapi88_com",
+      "name": "U酷影视",
+      "type": 1,
+      "api": "https://api.ukuapi88.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "bfzyapi_com",
+      "name": "暴风资源",
+      "type": 1,
+      "api": "https://bfzyapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "www_mdzyapi_com",
+      "name": "魔都资源",
+      "type": 1,
+      "api": "https://www.mdzyapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "caiji_moduapi_cc",
+      "name": "魔都动漫",
+      "type": 1,
+      "api": "https://caiji.moduapi.cc/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "www_subozy_com",
+      "name": "速播资源",
+      "type": 1,
+      "api": "https://www.subozy.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "api_xinlangapi_com",
+      "name": "新浪资源",
+      "type": 1,
+      "api": "https://api.xinlangapi.com/xinlangapi.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "cj_ffzyapi_com",
+      "name": "非凡资源",
+      "type": 1,
+      "api": "https://cj.ffzyapi.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
@@ -302,6 +275,24 @@
       "name": "非凡资源",
       "type": 1,
       "api": "https://api.ffzyapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "subocaiji_com",
+      "name": "速播资源",
+      "type": 1,
+      "api": "https://subocaiji.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "api_maoyanapi_top",
+      "name": "猫眼资源",
+      "type": 1,
+      "api": "https://api.maoyanapi.top/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
@@ -320,6 +311,15 @@
       "name": "豆瓣资源",
       "type": 1,
       "api": "https://caiji.dbzy5.com/api.php/provide/vod",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "iqiyizyapi_com",
+      "name": "爱奇艺",
+      "type": 1,
+      "api": "https://iqiyizyapi.com/api.php/provide/vod",
       "searchable": 1,
       "changeable": 1,
       "timeout": 15
